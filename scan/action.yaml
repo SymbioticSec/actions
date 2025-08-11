@@ -1,0 +1,39 @@
+name: Symbiotic Scan
+description: Scan the repository for vulnerabilities and misconfigurations
+inputs:
+  api-token:
+    description: Symbiotic Organization Access Token
+    required: true
+  scan-type:
+    description: Type of scan to run
+    required: false
+    default: 'all'
+    options:
+      - infra
+      - code
+      - all
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Symbiotic CLI
+      shell: bash
+      run: |
+        curl -sSL https://github.com/SymbioticSec/cli/releases/latest/download/install.sh | bash
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> $GITHUB_ENV
+
+    - name: Run Code Scan
+      if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
+      env:
+        SYMBIOTIC_API_TOKEN: ${{ inputs.api-token }}
+      shell: bash
+      run: |
+        symbiotic-cli ci code ./
+
+    - name: Run Infra Scan
+      if: inputs.scan-type == 'infra' || inputs.scan-type == 'all'
+      env:
+        SYMBIOTIC_API_TOKEN: ${{ inputs.api-token }}
+      shell: bash
+      run: |
+        symbiotic-cli ci infra ./
