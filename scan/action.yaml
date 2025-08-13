@@ -23,7 +23,9 @@ runs:
         echo 'export PATH="$HOME/.local/bin:$PATH"' >> $GITHUB_ENV
 
     - name: Run Code Scan
+      id: code-scan
       if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
+      continue-on-error: true
       env:
         SYMBIOTIC_API_TOKEN: ${{ inputs.api-token }}
       shell: bash
@@ -31,9 +33,19 @@ runs:
         symbiotic-cli ci code ./
 
     - name: Run Infra Scan
+      id: infra-scan
       if: inputs.scan-type == 'infra' || inputs.scan-type == 'all'
+      continue-on-error: true
       env:
         SYMBIOTIC_API_TOKEN: ${{ inputs.api-token }}
       shell: bash
       run: |
         symbiotic-cli ci infra ./
+
+    - name: Check Results
+      shell: bash
+      run: |
+        # Check if any scan failed and exit with code 1
+        if [[ "${{ steps.code-scan.outcome }}" == "failure" ]] || [[ "${{ steps.infra-scan.outcome }}" == "failure" ]]; then
+          exit 1
+        fi
