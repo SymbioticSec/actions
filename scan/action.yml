@@ -1,0 +1,66 @@
+name: Symbiotic Scan
+description: Scan the repository for vulnerabilities and misconfigurations
+inputs:
+  api-token:
+    description: Symbiotic Organization Access Token
+    required: true
+  scan-type:
+    description: Type of scan to run
+    required: false
+    default: "all"
+    options:
+      - infra
+      - code
+      - all
+  upload-results:
+    description: Whether to upload the scan results to Symbiotic
+    required: false
+    default: "true"
+  diff-scan:
+    description: Whether to run a diff scan (only display introduced vulnerabilities)
+    required: false
+    default: "true"
+
+runs:
+  using: "composite"
+  steps:
+    # This is needed to ensure we checkout the correct version of the actions repository
+    - name: Set reference to current action version
+      id: set-action-version
+      run: echo "ref=$ACTION_REF" >> $GITHUB_OUTPUT
+      shell: bash
+      env:
+        # Composite actions can access `action_ref` context in `env`
+        ACTION_REF: ${{ github.action_ref }}
+
+    # We now need to checkout the actions repository to be able to call the other actions
+    # Sadly, composite actions cannot reference other local actions directly
+    - name: Checkout actions repository
+      uses: actions/checkout@v4
+      with:
+        repository: SymbioticSec/actions
+        ref: ${{ steps.set-action-version.outputs.ref }}
+        path: .symbiotic-actions
+
+    - name: Install Symbiotic CLI
+      shell: bash
+      run: |
+        echo -e "\033[1;34m🔧 Installing Symbiotic CLI...\033[0m"
+        curl -sSL https://github.com/SymbioticSec/cli/releases/latest/download/install.sh | bash
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> $GITHUB_ENV
+    
+    - name: Run Standard Scan
+      if: ${{ github.event_name != 'pull_request' || inputs.diff-scan == 'false' }}
+      uses: ./.symbiotic-actions/standard-scan
+      with:
+        api-token: ${{ inputs.api-token }}
+        scan-type: ${{ inputs.scan-type }}
+        upload-results: ${{ inputs.upload-results }}
+
+    - name: Run PR Diff Scan
+      if: ${{ github.event_name == 'pull_request' && inputs.diff-scan == 'true' }}
+      uses: ./.symbiotic-actions/pr-scan
+      with:
+        api-token: ${{ inputs.api-token }}
+        scan-type: ${{ inputs.scan-type }}
+        upload-results: ${{ inputs.upload-results }}
