@@ -16,6 +16,10 @@ inputs:
     description: Whether to upload the scan results to Symbiotic
     required: false
     default: "true"
+  diff-scan:
+    description: Whether to run a diff scan (only display introduced vulnerabilities)
+    required: false
+    default: "true"
 
 runs:
   using: "composite"
@@ -26,69 +30,19 @@ runs:
         echo -e "\033[1;34m🔧 Installing Symbiotic CLI...\033[0m"
         curl -sSL https://github.com/SymbioticSec/cli/releases/latest/download/install.sh | bash
         echo 'export PATH="$HOME/.local/bin:$PATH"' >> $GITHUB_ENV
+    
+    - name: Run Standard Scan
+      if: ${{ github.event_name != 'pull_request' || inputs.diff-scan == 'false' }}
+      uses: ./standard-scan
+      with:
+        api-token: ${{ inputs.api-token }}
+        scan-type: ${{ inputs.scan-type }}
+        upload-results: ${{ inputs.upload-results }}
 
-    - name: Collect git info
-      id: git-info
-      if: inputs.upload-results == 'true'
-      shell: bash
-      run: |
-        echo -e "\033[1;34m⭐ Collecting git information...\033"
-
-        remote_url="$(git config --get remote.origin.url)"
-        first_commit_sha="$(git rev-list --max-parents=0 HEAD | head -n 1)"
-        latest_commit_sha="$(git rev-parse HEAD)"
-        current_branch="$(git branch --show-current)"
-
-        echo "remote_url=$remote_url" >> "$GITHUB_OUTPUT"
-        echo "first_commit_sha=$first_commit_sha" >> "$GITHUB_OUTPUT"
-        echo "latest_commit_sha=$latest_commit_sha" >> "$GITHUB_OUTPUT"
-        echo "default_branch=$default_branch" >> "$GITHUB_OUTPUT"
-        echo "current_branch=$current_branch" >> "$GITHUB_OUTPUT"
-
-    - name: Run Code Scan
-      id: code-scan
-      if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
-      continue-on-error: true
-      env:
-        SYMBIOTIC_API_TOKEN: ${{ inputs.api-token }}
-      shell: bash
-      run: |
-        echo -e "\033[1;36m💻 Running code scan...\033[0m"
-        if [[ "${{ inputs.upload-results }}" == "true" ]]; then
-          symbiotic-cli ci code ./ \
-            --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
-            --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
-            --git-latest-commit-sha "${{ steps.git-info.outputs.latest_commit_sha }}" \
-            --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ steps.git-info.outputs.current_branch }}"
-        else
-          symbiotic-cli ci code ./ --skip-upload-results
-        fi
-
-    - name: Run Infra Scan
-      id: infra-scan
-      if: inputs.scan-type == 'infra' || inputs.scan-type == 'all'
-      continue-on-error: true
-      env:
-        SYMBIOTIC_API_TOKEN: ${{ inputs.api-token }}
-      shell: bash
-      run: |
-        echo -e "\033[1;35m🏗️  Running infrastructure scan...\033[0m"
-        if [[ "${{ inputs.upload-results }}" == "true" ]]; then
-          symbiotic-cli ci infra ./ \
-            --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
-            --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
-            --git-latest-commit-sha "${{ steps.git-info.outputs.latest_commit_sha }}" \
-            --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ steps.git-info.outputs.current_branch }}"
-        else
-          symbiotic-cli ci infra ./ --skip-upload-results
-        fi
-
-    - name: Check Results
-      shell: bash
-      run: |
-        # Check if any scan failed and exit with code 1
-        if [[ "${{ steps.code-scan.outcome }}" == "failure" ]] || [[ "${{ steps.infra-scan.outcome }}" == "failure" ]]; then
-          exit 1
-        fi
+    - name: Run PR Diff Scan
+      if: ${{ github.event_name == 'pull_request' && inputs.diff-scan == 'true' }}
+      uses: ./pr-scan
+      with:
+        api-token: ${{ inputs.api-token }}
+        scan-type: ${{ inputs.scan-type }}
+        upload-results: ${{ inputs.upload-results }}
