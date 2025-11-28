@@ -24,7 +24,7 @@ runs:
       shell: bash
       run: |
         echo -e "\033[1;34m🔧 Installing Symbiotic CLI...\033[0m"
-        curl -sSL https://github.com/SymbioticSec/cli/releases/latest/download/install.sh | bash
+        curl -sSL https://github.com/SymbioticSec/cli/releases/download/pro-1462-beta3/install.sh | bash
         echo 'export PATH="$HOME/.local/bin:$PATH"' >> $GITHUB_ENV
 
     - name: Collect git info
@@ -51,6 +51,7 @@ runs:
       continue-on-error: true
       env:
         SYMBIOTIC_API_TOKEN: ${{ inputs.api-token }}
+        SYMBIOTIC_TARGET_API: https://api.preprod.symbioticsec.ai
       shell: bash
       run: |
         echo -e "\033[1;36m💻 Running code scan...\033[0m"
@@ -71,6 +72,7 @@ runs:
       continue-on-error: true
       env:
         SYMBIOTIC_API_TOKEN: ${{ inputs.api-token }}
+        SYMBIOTIC_TARGET_API: https://api.preprod.symbioticsec.ai
       shell: bash
       run: |
         echo -e "\033[1;35m🏗️  Running infrastructure scan...\033[0m"
