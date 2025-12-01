@@ -31,6 +31,7 @@ runs:
       continue-on-error: true
       env:
         SYMBIOTIC_API_TOKEN: ${{ inputs.api-token }}
+        SYMBIOTIC_TARGET_API: https://api.preprod.symbioticsec.ai
       shell: bash
       run: |
         echo -e "\033[1;36m💻 Running code scan...\033[0m"
@@ -51,6 +52,7 @@ runs:
       continue-on-error: true
       env:
         SYMBIOTIC_API_TOKEN: ${{ inputs.api-token }}
+        SYMBIOTIC_TARGET_API: https://api.preprod.symbioticsec.ai
       shell: bash
       run: |
         echo -e "\033[1;35m🏗️  Running infrastructure scan...\033[0m"
