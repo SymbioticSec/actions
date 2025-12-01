@@ -28,7 +28,10 @@ runs:
     - name: Collect git info
       id: git-info-base-branch
       if: inputs.upload-results == 'true'
-      uses: ./collect-git-info
+      shell: bash
+      run: |
+        source ${{ github.action_path }}/../scripts/collect-git-info.sh
+        collect_git_info "base_branch"
       
     - name: Run Code Scan
       id: code-scan-base-branch
@@ -43,11 +46,11 @@ runs:
         if [[ "${{ inputs.upload-results }}" == "true" ]]; then
           scan_output=$(symbiotic-cli ci code ./ \
             --skip-output-formatting \
-            --git-remote-url "${{ steps.git-info-base-branch.outputs.remote_url }}" \
-            --git-first-commit-sha "${{ steps.git-info-base-branch.outputs.first_commit_sha }}" \
-            --git-latest-commit-sha "${{ steps.git-info-base-branch.outputs.latest_commit_sha }}" \
+            --git-remote-url "${{ env.base_branch_remote_url }}" \
+            --git-first-commit-sha "${{ env.base_branch_first_commit_sha }}" \
+            --git-latest-commit-sha "${{ env.base_branch_latest_commit_sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ steps.git-info-base-branch.outputs.current_branch }}")
+            --git-current-branch "${{ env.base_branch_current_branch }}")
         else
           scan_output=$(symbiotic-cli code scan ./ --skip-output-formatting)
         fi
@@ -67,11 +70,11 @@ runs:
         if [[ "${{ inputs.upload-results }}" == "true" ]]; then
           scan_output=$(symbiotic-cli ci infra ./ \
             --skip-output-formatting \
-            --git-remote-url "${{ steps.git-info-base-branch.outputs.remote_url }}" \
-            --git-first-commit-sha "${{ steps.git-info-base-branch.outputs.first_commit_sha }}" \
-            --git-latest-commit-sha "${{ steps.git-info-base-branch.outputs.latest_commit_sha }}" \
+            --git-remote-url "${{ env.base_branch_remote_url }}" \
+            --git-first-commit-sha "${{ env.base_branch_first_commit_sha }}" \
+            --git-latest-commit-sha "${{ env.base_branch_latest_commit_sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ steps.git-info-base-branch.outputs.current_branch }}")
+            --git-current-branch "${{ env.base_branch_current_branch }}")
         else
           scan_output=$(symbiotic-cli infra scan ./ --skip-output-formatting)
         fi
@@ -86,7 +89,10 @@ runs:
     - name: Collect git info
       id: git-info-pr-branch
       if: inputs.upload-results == 'true'
-      uses: ./collect-git-info
+      shell: bash
+      run: |
+        source ${{ github.action_path }}/../scripts/collect-git-info.sh
+        collect_git_info "pr_branch"
 
     - name: Run Code Scan
       id: code-scan-pr-branch
@@ -101,11 +107,11 @@ runs:
         if [[ "${{ inputs.upload-results }}" == "true" ]]; then
           scan_output=$(symbiotic-cli ci code ./ \
             --skip-output-formatting \
-            --git-remote-url "${{ steps.git-info-pr-branch.outputs.remote_url }}" \
-            --git-first-commit-sha "${{ steps.git-info-pr-branch.outputs.first_commit_sha }}" \
-            --git-latest-commit-sha "${{ steps.git-info-pr-branch.outputs.latest_commit_sha }}" \
+            --git-remote-url "${{ env.pr_branch_remote_url }}" \
+            --git-first-commit-sha "${{ env.pr_branch_first_commit_sha }}" \
+            --git-latest-commit-sha "${{ env.pr_branch_latest_commit_sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ steps.git-info-pr-branch.outputs.current_branch }}")
+            --git-current-branch "${{ env.pr_branch_current_branch }}")
         else
           scan_output=$(symbiotic-cli code scan ./ --skip-output-formatting)
         fi
@@ -125,11 +131,11 @@ runs:
         if [[ "${{ inputs.upload-results }}" == "true" ]]; then
           scan_output=$(symbiotic-cli ci infra ./ \
             --skip-output-formatting \
-            --git-remote-url "${{ steps.git-info-pr-branch.outputs.remote_url }}" \
-            --git-first-commit-sha "${{ steps.git-info-pr-branch.outputs.first_commit_sha }}" \
-            --git-latest-commit-sha "${{ steps.git-info-pr-branch.outputs.latest_commit_sha }}" \
+            --git-remote-url "${{ env.pr_branch_remote_url }}" \
+            --git-first-commit-sha "${{ env.pr_branch_first_commit_sha }}" \
+            --git-latest-commit-sha "${{ env.pr_branch_latest_commit_sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ steps.git-info-pr-branch.outputs.current_branch }}")
+            --git-current-branch "${{ env.pr_branch_current_branch }}")
         else
           scan_output=$(symbiotic-cli infra scan ./ --skip-output-formatting)
         fi
