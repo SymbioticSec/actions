@@ -24,6 +24,13 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Set action version
+      id: action-version
+      shell: bash
+      run: echo "ref=$ACTION_REF" >> $GITHUB_OUTPUT
+      env:
+        ACTION_REF: ${{ github.action_ref }}
+
     - name: Install Symbiotic CLI
       shell: bash
       run: |
@@ -33,7 +40,7 @@ runs:
     
     - name: Run Standard Scan
       if: ${{ github.event_name != 'pull_request' || inputs.diff-scan == 'false' }}
-      uses: SymbioticSec/actions/standard-scan@${{ github.action_ref }}
+      uses: SymbioticSec/actions/standard-scan@${{ steps.action-version.outputs.ref }}
       with:
         api-token: ${{ inputs.api-token }}
         scan-type: ${{ inputs.scan-type }}
@@ -41,7 +48,7 @@ runs:
 
     - name: Run PR Diff Scan
       if: ${{ github.event_name == 'pull_request' && inputs.diff-scan == 'true' }}
-      uses: SymbioticSec/actions/pr-scan@${{ github.action_ref }}
+      uses: SymbioticSec/actions/pr-scan@${{ steps.action-version.outputs.ref }}
       with:
         api-token: ${{ inputs.api-token }}
         scan-type: ${{ inputs.scan-type }}
