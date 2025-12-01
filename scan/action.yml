@@ -33,7 +33,7 @@ runs:
     
     - name: Run Standard Scan
       if: ${{ github.event_name != 'pull_request' || inputs.diff-scan == 'false' }}
-      uses: ./standard-scan
+      uses: SymbioticSec/actions/standard-scan@${{ github.action_ref }}
       with:
         api-token: ${{ inputs.api-token }}
         scan-type: ${{ inputs.scan-type }}
@@ -41,7 +41,7 @@ runs:
 
     - name: Run PR Diff Scan
       if: ${{ github.event_name == 'pull_request' && inputs.diff-scan == 'true' }}
-      uses: ./pr-scan
+      uses: SymbioticSec/actions/pr-scan@${{ github.action_ref }}
       with:
         api-token: ${{ inputs.api-token }}
         scan-type: ${{ inputs.scan-type }}
