@@ -28,20 +28,7 @@ runs:
     - name: Collect git info
       id: git-info-base-branch
       if: inputs.upload-results == 'true'
-      shell: bash
-      run: |
-        echo -e "\033[1;34m⭐ Collecting git information...\033"
-
-        remote_url="$(git config --get remote.origin.url)"
-        first_commit_sha="$(git rev-list --max-parents=0 HEAD | head -n 1)"
-        latest_commit_sha="$(git rev-parse HEAD)"
-        current_branch="$(git branch --show-current)"
-
-        echo "remote_url=$remote_url" >> "$GITHUB_OUTPUT"
-        echo "first_commit_sha=$first_commit_sha" >> "$GITHUB_OUTPUT"
-        echo "latest_commit_sha=$latest_commit_sha" >> "$GITHUB_OUTPUT"
-        echo "default_branch=$default_branch" >> "$GITHUB_OUTPUT"
-        echo "current_branch=$current_branch" >> "$GITHUB_OUTPUT"
+      uses: ./collect-git-info
       
     - name: Run Code Scan
       id: code-scan-base-branch
@@ -61,7 +48,7 @@ runs:
             --git-default-branch "${{ github.event.repository.default_branch }}" \
             --git-current-branch "${{ steps.git-info-base-branch.outputs.current_branch }}")
         else
-          scan_output=$(symbiotic-cli code scan ./)
+          scan_output=$(symbiotic-cli code scan ./ --skip-output-formatting)
         fi
         
         echo "scan_output=$scan_output" >> "$GITHUB_OUTPUT"
@@ -84,7 +71,7 @@ runs:
             --git-default-branch "${{ github.event.repository.default_branch }}" \
             --git-current-branch "${{ steps.git-info-base-branch.outputs.current_branch }}")
         else
-          scan_output=$(symbiotic-cli infra scan ./)
+          scan_output=$(symbiotic-cli infra scan ./ --skip-output-formatting)
         fi
 
         echo "scan_output=$scan_output" >> "$GITHUB_OUTPUT"
@@ -97,20 +84,7 @@ runs:
     - name: Collect git info
       id: git-info-pr-branch
       if: inputs.upload-results == 'true'
-      shell: bash
-      run: |
-        echo -e "\033[1;34m⭐ Collecting git information...\033"
-
-        remote_url="$(git config --get remote.origin.url)"
-        first_commit_sha="$(git rev-list --max-parents=0 HEAD | head -n 1)"
-        latest_commit_sha="$(git rev-parse HEAD)"
-        current_branch="$(git branch --show-current)"
-
-        echo "remote_url=$remote_url" >> "$GITHUB_OUTPUT"
-        echo "first_commit_sha=$first_commit_sha" >> "$GITHUB_OUTPUT"
-        echo "latest_commit_sha=$latest_commit_sha" >> "$GITHUB_OUTPUT"
-        echo "default_branch=$default_branch" >> "$GITHUB_OUTPUT"
-        echo "current_branch=$current_branch" >> "$GITHUB_OUTPUT"
+      uses: ./collect-git-info
 
     - name: Run Code Scan
       id: code-scan-pr-branch
@@ -130,7 +104,7 @@ runs:
             --git-default-branch "${{ github.event.repository.default_branch }}" \
             --git-current-branch "${{ steps.git-info-pr-branch.outputs.current_branch }}")
         else
-          scan_output=$(symbiotic-cli code scan ./)
+          scan_output=$(symbiotic-cli code scan ./ --skip-output-formatting)
         fi
 
         echo "scan_output=$scan_output" >> "$GITHUB_OUTPUT"
@@ -153,7 +127,7 @@ runs:
             --git-default-branch "${{ github.event.repository.default_branch }}" \
             --git-current-branch "${{ steps.git-info-pr-branch.outputs.current_branch }}")
         else
-          scan_output=$(symbiotic-cli infra scan ./)
+          scan_output=$(symbiotic-cli infra scan ./ --skip-output-formatting)
         fi
 
         echo "scan_output=$scan_output" >> "$GITHUB_OUTPUT"
