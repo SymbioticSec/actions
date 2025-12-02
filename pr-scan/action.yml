@@ -29,13 +29,22 @@ runs:
       with:
         ref: ${{ github.event.pull_request.base.ref }}
 
-    - name: Collect git info
+    - name: Collect git info base branch
       id: git-info-base-branch
       if: inputs.upload-results == 'true'
       shell: bash
       run: |
-        source ${{ github.action_path }}/../scripts/collect-git-info.sh
-        collect_git_info "base_branch"
+        echo -e "\033[1;34m⭐ Collecting git information...\033"
+
+        remote_url="$(git config --get remote.origin.url)"
+        first_commit_sha="$(git rev-list --max-parents=0 HEAD | head -n 1)"
+        latest_commit_sha="$(git rev-parse HEAD)"
+        current_branch="$(git branch --show-current)"
+
+        echo "remote_url=$remote_url" >> "$GITHUB_OUTPUT"
+        echo "first_commit_sha=$first_commit_sha" >> "$GITHUB_OUTPUT"
+        echo "latest_commit_sha=$latest_commit_sha" >> "$GITHUB_OUTPUT"
+        echo "current_branch=$current_branch" >> "$GITHUB_OUTPUT"
       
     - name: Run Code Scan
       id: code-scan-base-branch
@@ -90,13 +99,22 @@ runs:
       with:
         ref: ${{ github.event.pull_request.head.ref }}
 
-    - name: Collect git info
+    - name: Collect git info PR branch
       id: git-info-pr-branch
       if: inputs.upload-results == 'true'
       shell: bash
       run: |
-        source ${{ github.action_path }}/../scripts/collect-git-info.sh
-        collect_git_info "pr_branch"
+        echo -e "\033[1;34m⭐ Collecting git information...\033"
+
+        remote_url="$(git config --get remote.origin.url)"
+        first_commit_sha="$(git rev-list --max-parents=0 HEAD | head -n 1)"
+        latest_commit_sha="$(git rev-parse HEAD)"
+        current_branch="$(git branch --show-current)"
+
+        echo "remote_url=$remote_url" >> "$GITHUB_OUTPUT"
+        echo "first_commit_sha=$first_commit_sha" >> "$GITHUB_OUTPUT"
+        echo "latest_commit_sha=$latest_commit_sha" >> "$GITHUB_OUTPUT"
+        echo "current_branch=$current_branch" >> "$GITHUB_OUTPUT"
 
     - name: Run Code Scan
       id: code-scan-pr-branch
