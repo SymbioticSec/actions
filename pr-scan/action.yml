@@ -27,7 +27,7 @@ runs:
     - name: Checkout base branch
       uses: actions/checkout@v4
       with:
-        ref: ${{ github.event.pull_request.base.ref }}
+        ref: ${{ github.base_ref }}
 
     - name: Collect git info base branch
       id: git-info-base-branch
@@ -45,6 +45,11 @@ runs:
         echo "first_commit_sha=$first_commit_sha" >> "$GITHUB_OUTPUT"
         echo "latest_commit_sha=$latest_commit_sha" >> "$GITHUB_OUTPUT"
         echo "current_branch=$current_branch" >> "$GITHUB_OUTPUT"
+
+        echo "$remote_url"
+        echo "$first_commit_sha"
+        echo "$latest_commit_sha"
+        echo "${{ github.base_ref }}"
       
     - name: Run Code Scan
       id: code-scan-base-branch
@@ -63,7 +68,7 @@ runs:
             --git-first-commit-sha "${{ steps.git-info-base-branch.outputs.first_commit_sha }}" \
             --git-latest-commit-sha "${{ steps.git-info-base-branch.outputs.latest_commit_sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ steps.git-info-base-branch.outputs.current_branch }}")
+            --git-current-branch "${{ github.base_ref }}")
         else
           scan_output=$(symbiotic-cli ci code ./ --skip-upload-results --skip-output-formatting)
         fi
@@ -92,7 +97,7 @@ runs:
             --git-first-commit-sha "${{ steps.git-info-base-branch.outputs.first_commit_sha }}" \
             --git-latest-commit-sha "${{ steps.git-info-base-branch.outputs.latest_commit_sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ steps.git-info-base-branch.outputs.current_branch }}")
+            --git-current-branch "${{ github.base_ref }}")
         else
           scan_output=$(symbiotic-cli ci infra ./ --skip-upload-results --skip-output-formatting)
         fi
@@ -107,7 +112,7 @@ runs:
     - name: Checkout PR branch
       uses: actions/checkout@v4
       with:
-        ref: ${{ github.event.pull_request.head.ref }}
+        ref: ${{ github.head_ref }}
 
     - name: Collect git info PR branch
       id: git-info-pr-branch
@@ -126,6 +131,11 @@ runs:
         echo "latest_commit_sha=$latest_commit_sha" >> "$GITHUB_OUTPUT"
         echo "current_branch=$current_branch" >> "$GITHUB_OUTPUT"
 
+        echo "$remote_url"
+        echo "$first_commit_sha"
+        echo "$latest_commit_sha"
+        echo "${{ github.head_ref }}"
+
     - name: Run Code Scan
       id: code-scan-pr-branch
       if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
@@ -143,7 +153,7 @@ runs:
             --git-first-commit-sha "${{ steps.git-info-pr-branch.outputs.first_commit_sha }}" \
             --git-latest-commit-sha "${{ steps.git-info-pr-branch.outputs.latest_commit_sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ steps.git-info-pr-branch.outputs.current_branch }}")
+            --git-current-branch "${{ github.head_ref }}")
         else
           scan_output=$(symbiotic-cli ci code ./ --skip-upload-results --skip-output-formatting)
         fi
@@ -172,7 +182,7 @@ runs:
             --git-first-commit-sha "${{ steps.git-info-pr-branch.outputs.first_commit_sha }}" \
             --git-latest-commit-sha "${{ steps.git-info-pr-branch.outputs.latest_commit_sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ steps.git-info-pr-branch.outputs.current_branch }}")
+            --git-current-branch "${{ github.head_ref }}")
         else
           scan_output=$(symbiotic-cli ci infra ./ --skip-upload-results --skip-output-formatting)
         fi
