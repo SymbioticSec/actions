@@ -68,7 +68,12 @@ runs:
           scan_output=$(symbiotic-cli --auth-mode organization code scan ./)
         fi
         
-        echo "scan_output=$scan_output" >> "$GITHUB_OUTPUT"
+        # Syntax to handle multi-line output in GitHub Actions outputs
+        # Use random delimiter to avoid conflicts
+        delimiter="$(openssl rand -hex 8)"
+        echo "scan_output<<$delimiter" >> "$GITHUB_OUTPUT"
+        echo "$scan_output" >> "$GITHUB_OUTPUT"
+        echo "$delimiter" >> "$GITHUB_OUTPUT"
 
     - name: Run Infra Scan
       id: infra-scan-base-branch
@@ -92,7 +97,12 @@ runs:
           scan_output=$(symbiotic-cli --auth-mode organization infra scan ./)
         fi
 
-        echo "scan_output=$scan_output" >> "$GITHUB_OUTPUT"
+        # Syntax to handle multi-line output in GitHub Actions outputs
+        # Use random delimiter to avoid conflicts
+        delimiter="$(openssl rand -hex 8)"
+        echo "scan_output<<$delimiter" >> "$GITHUB_OUTPUT"
+        echo "$scan_output" >> "$GITHUB_OUTPUT"
+        echo "$delimiter" >> "$GITHUB_OUTPUT"
 
     - name: Checkout PR branch
       uses: actions/checkout@v4
@@ -138,7 +148,12 @@ runs:
           scan_output=$(symbiotic-cli --auth-mode organization code scan ./)
         fi
 
-        echo "scan_output=$scan_output" >> "$GITHUB_OUTPUT"
+        # Syntax to handle multi-line output in GitHub Actions outputs
+        # Use random delimiter to avoid conflicts
+        delimiter="$(openssl rand -hex 8)"
+        echo "scan_output<<$delimiter" >> "$GITHUB_OUTPUT"
+        echo "$scan_output" >> "$GITHUB_OUTPUT"
+        echo "$delimiter" >> "$GITHUB_OUTPUT"
 
     - name: Run Infra Scan
       id: infra-scan-pr-branch
@@ -162,7 +177,12 @@ runs:
           scan_output=$(symbiotic-cli --auth-mode organization infra scan ./)
         fi
 
-        echo "scan_output=$scan_output" >> "$GITHUB_OUTPUT"
+        # Syntax to handle multi-line output in GitHub Actions outputs
+        # Use random delimiter to avoid conflicts
+        delimiter="$(openssl rand -hex 8)"
+        echo "scan_output<<$delimiter" >> "$GITHUB_OUTPUT"
+        echo "$scan_output" >> "$GITHUB_OUTPUT"
+        echo "$delimiter" >> "$GITHUB_OUTPUT"
 
     - name: Run code scan diff
       id: code-scan-diff
