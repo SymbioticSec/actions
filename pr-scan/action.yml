@@ -44,13 +44,6 @@ runs:
 
         echo "remote_url=$remote_url" >> "$GITHUB_OUTPUT"
         echo "first_commit_sha=$first_commit_sha" >> "$GITHUB_OUTPUT"
-
-        echo "$remote_url"
-        echo "$first_commit_sha"
-        echo "${{ github.event.pull_request.base.sha }}"
-        echo "${{ github.base_ref }}"
-        echo "${{ github.event.pull_request.head.sha }}"
-        echo "${{ github.head_ref }}"
       
     - name: Run Code Scan
       id: code-scan-base-branch
@@ -172,6 +165,22 @@ runs:
         echo "scan_output<<$delimiter" >> "$GITHUB_OUTPUT"
         echo "$scan_output" >> "$GITHUB_OUTPUT"
         echo "$delimiter" >> "$GITHUB_OUTPUT"
+
+    - name: Log Infra Scans Outputs
+      if: inputs.scan-type == 'infra' || inputs.scan-type == 'all'
+      run: |
+        echo -e "\033[1;34m📄 Infra Scan - Base Branch Output:\033[0m"
+        echo "${{ steps.infra-scan-base-branch.outputs.scan_output }}"
+        echo -e "\033[1;34m📄 Infra Scan - PR Branch Output:\033[0m"
+        echo "${{ steps.infra-scan-pr-branch.outputs.scan_output }}"
+
+    - name: Log Code Scans Outputs
+      if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
+      run: |
+        echo -e "\033[1;34m📄 Code Scan - Base Branch Output:\033[0m"
+        echo "${{ steps.code-scan-base-branch.outputs.scan_output }}"
+        echo -e "\033[1;34m📄 Code Scan - PR Branch Output:\033[0m"
+        echo "${{ steps.code-scan-pr-branch.outputs.scan_output }}"
 
     - name: Run code scan diff
       id: code-scan-diff

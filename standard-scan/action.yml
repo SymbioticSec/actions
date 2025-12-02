@@ -45,11 +45,6 @@ runs:
         echo "remote_url=$remote_url" >> "$GITHUB_OUTPUT"
         echo "first_commit_sha=$first_commit_sha" >> "$GITHUB_OUTPUT"
 
-        echo "$remote_url"
-        echo "$first_commit_sha"
-        echo "${{ github.sha }}"
-        echo "${{ github.ref_name }}"
-
     - name: Run Code Scan
       id: code-scan
       if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
