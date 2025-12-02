@@ -171,7 +171,7 @@ runs:
       shell: bash
       run: |
         echo -e "\033[1;33m🔍 Comparing code scan results between base and PR branches...\033[0m"
-        symbiotic-cli scan-diff --ci-mode \
+        symbiotic-cli scan-diff --ci-formatting \
           "${{ steps.code-scan-base-branch.outputs.scan_output }}" \
           "${{ steps.code-scan-pr-branch.outputs.scan_output }}"
 
@@ -182,7 +182,7 @@ runs:
       shell: bash
       run: |
         echo -e "\033[1;33m🔍 Comparing infrastructure scan results between base and PR branches...\033[0m"
-        symbiotic-cli scan-diff --ci-mode \
+        symbiotic-cli scan-diff --ci-formatting \
           "${{ steps.infra-scan-base-branch.outputs.scan_output }}" \
           "${{ steps.infra-scan-pr-branch.outputs.scan_output }}"
     
