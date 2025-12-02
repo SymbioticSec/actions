@@ -20,6 +20,10 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Start Standard Scan
+      run: echo "Starting Standard Scan..."
+      shell: bash
+
     - name: Collect git info
       id: git-info
       if: inputs.upload-results == 'true'
