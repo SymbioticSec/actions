@@ -20,6 +20,10 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Start PR Scan
+      run: echo "Starting PR Scan..."
+      shell: bash
+
     - name: Checkout base branch
       uses: actions/checkout@v4
       with:
