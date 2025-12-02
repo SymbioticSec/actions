@@ -41,7 +41,10 @@ runs:
         echo "latest_commit_sha=$latest_commit_sha" >> "$GITHUB_OUTPUT"
         echo "current_branch=$current_branch" >> "$GITHUB_OUTPUT"
 
-        echo "$current_branch"
+        echo "$remote_url"
+        echo "$first_commit_sha"
+        echo "$latest_commit_sha"
+        echo "${{ github.ref_name }}"
 
     - name: Run Code Scan
       id: code-scan
@@ -59,7 +62,7 @@ runs:
             --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
             --git-latest-commit-sha "${{ steps.git-info.outputs.latest_commit_sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ steps.git-info.outputs.current_branch }}"
+            --git-current-branch "${{ github.ref_name }}"
         else
           symbiotic-cli ci code ./ --skip-upload-results
         fi
