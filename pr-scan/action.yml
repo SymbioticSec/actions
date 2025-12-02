@@ -168,6 +168,7 @@ runs:
 
     - name: Log Infra Scans Outputs
       if: inputs.scan-type == 'infra' || inputs.scan-type == 'all'
+      shell: bash
       run: |
         echo -e "\033[1;34m📄 Infra Scan - Base Branch Output:\033[0m"
         echo "${{ steps.infra-scan-base-branch.outputs.scan_output }}"
@@ -176,6 +177,7 @@ runs:
 
     - name: Log Code Scans Outputs
       if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
+      shell: bash
       run: |
         echo -e "\033[1;34m📄 Code Scan - Base Branch Output:\033[0m"
         echo "${{ steps.code-scan-base-branch.outputs.scan_output }}"
