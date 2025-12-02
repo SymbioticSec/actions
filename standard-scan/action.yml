@@ -41,6 +41,8 @@ runs:
         echo "latest_commit_sha=$latest_commit_sha" >> "$GITHUB_OUTPUT"
         echo "current_branch=$current_branch" >> "$GITHUB_OUTPUT"
 
+        echo "$current_branch"
+
     - name: Run Code Scan
       id: code-scan
       if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
