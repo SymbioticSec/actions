@@ -56,26 +56,16 @@ runs:
       run: |
         echo -e "\033[1;36m💻 Running code scan...\033[0m"
         if [[ "${{ inputs.upload-results }}" == "true" ]]; then
-          scan_output=$(symbiotic-cli ci code ./ \
+          symbiotic-cli ci code ./ \
             --skip-output-formatting \
             --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
             --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
             --git-latest-commit-sha "${{ github.event.pull_request.base.sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ github.base_ref }}")
+            --git-current-branch "${{ github.base_ref }}" >> symbiotic_scan_output_code_base_branch.json
         else
-          scan_output=$(symbiotic-cli ci code ./ --skip-upload-results --skip-output-formatting)
+          symbiotic-cli ci code ./ --skip-upload-results --skip-output-formatting >> symbiotic_scan_output_code_base_branch.json
         fi
-        
-        # Syntax to handle multi-line output in GitHub Actions outputs
-        # Use random delimiter to avoid conflicts
-        delimiter="EOF_$(openssl rand -hex 8)"
-        {
-          echo "scan_output<<${delimiter}"
-          printf '%s' "${scan_output}"
-          echo ""
-          echo "${delimiter}"
-        } >> "$GITHUB_OUTPUT"
 
     - name: Run Infra Scan
       id: infra-scan-base-branch
@@ -88,26 +78,16 @@ runs:
       run: |
         echo -e "\033[1;35m🏗️  Running infrastructure scan...\033[0m"
         if [[ "${{ inputs.upload-results }}" == "true" ]]; then
-          scan_output=$(symbiotic-cli ci infra ./ \
+          symbiotic-cli ci infra ./ \
             --skip-output-formatting \
             --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
             --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
             --git-latest-commit-sha "${{ github.event.pull_request.base.sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ github.base_ref }}")
+            --git-current-branch "${{ github.base_ref }}" >> symbiotic_scan_output_infra_base_branch.json
         else
-          scan_output=$(symbiotic-cli ci infra ./ --skip-upload-results --skip-output-formatting)
+          symbiotic-cli ci infra ./ --skip-upload-results --skip-output-formatting >> symbiotic_scan_output_infra_base_branch.json
         fi
-
-        # Syntax to handle multi-line output in GitHub Actions outputs
-        # Use random delimiter to avoid conflicts
-        delimiter="EOF_$(openssl rand -hex 8)"
-        {
-          echo "scan_output<<${delimiter}"
-          printf '%s' "${scan_output}"
-          echo ""
-          echo "${delimiter}"
-        } >> "$GITHUB_OUTPUT"
 
     - name: Checkout PR branch
       uses: actions/checkout@v4
@@ -125,26 +105,16 @@ runs:
       run: |
         echo -e "\033[1;36m💻 Running code scan...\033[0m"
         if [[ "${{ inputs.upload-results }}" == "true" ]]; then
-          scan_output=$(symbiotic-cli ci code ./ \
+          symbiotic-cli ci code ./ \
             --skip-output-formatting \
             --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
             --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
             --git-latest-commit-sha "${{ github.event.pull_request.head.sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ github.head_ref }}")
+            --git-current-branch "${{ github.head_ref }}" >> symbiotic_scan_output_code_pr_branch.json
         else
-          scan_output=$(symbiotic-cli ci code ./ --skip-upload-results --skip-output-formatting)
+          symbiotic-cli ci code ./ --skip-upload-results --skip-output-formatting >> symbiotic_scan_output_code_pr_branch.json
         fi
-
-        # Syntax to handle multi-line output in GitHub Actions outputs
-        # Use random delimiter to avoid conflicts
-        delimiter="EOF_$(openssl rand -hex 8)"
-        {
-          echo "scan_output<<${delimiter}"
-          printf '%s' "${scan_output}"
-          echo ""
-          echo "${delimiter}"
-        } >> "$GITHUB_OUTPUT"
 
     - name: Run Infra Scan
       id: infra-scan-pr-branch
@@ -157,50 +127,34 @@ runs:
       run: |
         echo -e "\033[1;35m🏗️  Running infrastructure scan...\033[0m"
         if [[ "${{ inputs.upload-results }}" == "true" ]]; then
-          scan_output=$(symbiotic-cli ci infra ./ \
+          symbiotic-cli ci infra ./ \
             --skip-output-formatting \
             --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
             --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
             --git-latest-commit-sha "${{ github.event.pull_request.head.sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ github.head_ref }}")
+            --git-current-branch "${{ github.head_ref }}" >> symbiotic_scan_output_infra_pr_branch.json
         else
-          scan_output=$(symbiotic-cli ci infra ./ --skip-upload-results --skip-output-formatting)
+          symbiotic-cli ci infra ./ --skip-upload-results --skip-output-formatting >> symbiotic_scan_output_infra_pr_branch.json
         fi
-
-        # Syntax to handle multi-line output in GitHub Actions outputs
-        # Use random delimiter to avoid conflicts
-        delimiter="EOF_$(openssl rand -hex 8)"
-        {
-          echo "scan_output<<${delimiter}"
-          printf '%s' "${scan_output}"
-          echo ""
-          echo "${delimiter}"
-        } >> "$GITHUB_OUTPUT"
 
     - name: Run code scan diff
       id: code-scan-diff
       if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
       continue-on-error: true
       shell: bash
-      env:
-        BASE_OUTPUT: ${{ steps.code-scan-base-branch.outputs.scan_output }}
-        PR_OUTPUT: ${{ steps.code-scan-pr-branch.outputs.scan_output }}
       run: |
         echo -e "\033[1;33m🔍 Comparing code scan results between base and PR branches...\033[0m"
-        symbiotic-cli scan-diff --ci-formatting "$BASE_OUTPUT" "$PR_OUTPUT"
+        symbiotic-cli scan-diff --ci-formatting symbiotic_scan_output_code_base_branch.json symbiotic_scan_output_code_pr_branch.json
 
     - name: Run infra scan diff
       id: infra-scan-diff
       if: inputs.scan-type == 'infra' || inputs.scan-type == 'all'
       continue-on-error: true
       shell: bash
-      env:
-        BASE_OUTPUT: ${{ steps.infra-scan-base-branch.outputs.scan_output }}
-        PR_OUTPUT: ${{ steps.infra-scan-pr-branch.outputs.scan_output }}
       run: |
         echo -e "\033[1;33m🔍 Comparing infrastructure scan results between base and PR branches...\033[0m"
-        symbiotic-cli scan-diff --ci-formatting "$BASE_OUTPUT" "$PR_OUTPUT"
+        symbiotic-cli scan-diff --ci-formatting symbiotic_scan_output_infra_base_branch.json symbiotic_scan_output_infra_pr_branch.json
     
     - name: Check Results
       shell: bash
