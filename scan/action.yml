@@ -48,6 +48,14 @@ runs:
         echo -e "\033[1;34m🔧 Installing Symbiotic CLI...\033[0m"
         curl -sSL https://github.com/SymbioticSec/cli/releases/download/pro-1463-beta7/install.sh | bash
         echo 'export PATH="$HOME/.local/bin:$PATH"' >> $GITHUB_ENV
+
+    - name: Log GitHub Event Info
+      shell: bash
+      run: |
+        echo -e "\033[1;34m📄 GitHub Event Info:\033[0m"
+        echo "Event Name: ${{ github.event_name }}"
+        echo "Base ref: ${{ github.event.pull_request.base.ref || 'N/A' }}"
+        echo "Head ref: ${{ github.event.pull_request.head.ref || 'N/A' }}"
     
     - name: Run Standard Scan
       if: ${{ github.event_name != 'pull_request' || inputs.diff-scan == 'false' }}
