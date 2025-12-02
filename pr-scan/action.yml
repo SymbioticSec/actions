@@ -65,7 +65,7 @@ runs:
             --git-default-branch "${{ github.event.repository.default_branch }}" \
             --git-current-branch "${{ env.base_branch_current_branch }}")
         else
-          scan_output=$(symbiotic-cli --auth-mode organization code scan ./)
+          scan_output=$(symbiotic-cli ci code ./ --skip-upload-results --skip-output-formatting)
         fi
         
         # Syntax to handle multi-line output in GitHub Actions outputs
@@ -94,7 +94,7 @@ runs:
             --git-default-branch "${{ github.event.repository.default_branch }}" \
             --git-current-branch "${{ env.base_branch_current_branch }}")
         else
-          scan_output=$(symbiotic-cli --auth-mode organization infra scan ./)
+          scan_output=$(symbiotic-cli ci infra ./ --skip-upload-results --skip-output-formatting)
         fi
 
         # Syntax to handle multi-line output in GitHub Actions outputs
@@ -145,7 +145,7 @@ runs:
             --git-default-branch "${{ github.event.repository.default_branch }}" \
             --git-current-branch "${{ env.pr_branch_current_branch }}")
         else
-          scan_output=$(symbiotic-cli --auth-mode organization code scan ./)
+          scan_output=$(symbiotic-cli ci code ./ --skip-upload-results --skip-output-formatting)
         fi
 
         # Syntax to handle multi-line output in GitHub Actions outputs
@@ -174,7 +174,7 @@ runs:
             --git-default-branch "${{ github.event.repository.default_branch }}" \
             --git-current-branch "${{ env.pr_branch_current_branch }}")
         else
-          scan_output=$(symbiotic-cli --auth-mode organization infra scan ./)
+          scan_output=$(symbiotic-cli ci infra ./ --skip-upload-results --skip-output-formatting)
         fi
 
         # Syntax to handle multi-line output in GitHub Actions outputs
