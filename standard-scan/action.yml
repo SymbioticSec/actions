@@ -53,11 +53,11 @@ runs:
         echo -e "\033[1;36m💻 Running code scan...\033[0m"
         if [[ "${{ inputs.upload-results }}" == "true" ]]; then
           symbiotic-cli ci code ./ \
-            --git-remote-url "${{ env.git_info_remote_url }}" \
-            --git-first-commit-sha "${{ env.git_info_first_commit_sha }}" \
-            --git-latest-commit-sha "${{ env.git_info_latest_commit_sha }}" \
+            --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
+            --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
+            --git-latest-commit-sha "${{ steps.git-info.outputs.latest_commit_sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ env.git_info_current_branch }}"
+            --git-current-branch "${{ steps.git-info.outputs.current_branch }}"
         else
           symbiotic-cli ci code ./ --skip-upload-results
         fi
@@ -74,11 +74,11 @@ runs:
         echo -e "\033[1;35m🏗️  Running infrastructure scan...\033[0m"
         if [[ "${{ inputs.upload-results }}" == "true" ]]; then
           symbiotic-cli ci infra ./ \
-            --git-remote-url "${{ env.git_info_remote_url }}" \
-            --git-first-commit-sha "${{ env.git_info_first_commit_sha }}" \
-            --git-latest-commit-sha "${{ env.git_info_latest_commit_sha }}" \
+            --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
+            --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
+            --git-latest-commit-sha "${{ steps.git-info.outputs.latest_commit_sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ env.git_info_current_branch }}"
+            --git-current-branch "${{ steps.git-info.outputs.current_branch }}"
         else
           symbiotic-cli ci infra ./ --skip-upload-results
         fi
