@@ -181,42 +181,50 @@ runs:
     - name: Log Infra Scans Outputs
       if: inputs.scan-type == 'infra' || inputs.scan-type == 'all'
       shell: bash
+      env:
+        BASE_OUTPUT: ${{ steps.infra-scan-base-branch.outputs.scan_output }}
+        PR_OUTPUT: ${{ steps.infra-scan-pr-branch.outputs.scan_output }}
       run: |
         echo -e "\033[1;34m📄 Infra Scan - Base Branch Output:\033[0m"
-        printf '%s\n' '${{ steps.infra-scan-base-branch.outputs.scan_output }}'
+        printf '%s\n' "$BASE_OUTPUT"
         echo -e "\033[1;34m📄 Infra Scan - PR Branch Output:\033[0m"
-        printf '%s\n' '${{ steps.infra-scan-pr-branch.outputs.scan_output }}'
+        printf '%s\n' "$PR_OUTPUT"
 
     - name: Log Code Scans Outputs
       if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
       shell: bash
+      env:
+        BASE_OUTPUT: ${{ steps.code-scan-base-branch.outputs.scan_output }}
+        PR_OUTPUT: ${{ steps.code-scan-pr-branch.outputs.scan_output }}
       run: |
         echo -e "\033[1;34m📄 Code Scan - Base Branch Output:\033[0m"
-        printf '%s\n' '${{ steps.code-scan-base-branch.outputs.scan_output }}'
+        printf '%s\n' "$BASE_OUTPUT"
         echo -e "\033[1;34m📄 Code Scan - PR Branch Output:\033[0m"
-        printf '%s\n' '${{ steps.code-scan-pr-branch.outputs.scan_output }}'
+        printf '%s\n' "$PR_OUTPUT"
 
     - name: Run code scan diff
       id: code-scan-diff
       if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
       continue-on-error: true
       shell: bash
+      env:
+        BASE_OUTPUT: ${{ steps.code-scan-base-branch.outputs.scan_output }}
+        PR_OUTPUT: ${{ steps.code-scan-pr-branch.outputs.scan_output }}
       run: |
         echo -e "\033[1;33m🔍 Comparing code scan results between base and PR branches...\033[0m"
-        symbiotic-cli scan-diff --ci-formatting \
-          "${{ steps.code-scan-base-branch.outputs.scan_output }}" \
-          "${{ steps.code-scan-pr-branch.outputs.scan_output }}"
+        symbiotic-cli scan-diff --ci-formatting "$BASE_OUTPUT" "$PR_OUTPUT"
 
     - name: Run infra scan diff
       id: infra-scan-diff
       if: inputs.scan-type == 'infra' || inputs.scan-type == 'all'
       continue-on-error: true
       shell: bash
+      env:
+        BASE_OUTPUT: ${{ steps.infra-scan-base-branch.outputs.scan_output }}
+        PR_OUTPUT: ${{ steps.infra-scan-pr-branch.outputs.scan_output }}
       run: |
         echo -e "\033[1;33m🔍 Comparing infrastructure scan results between base and PR branches...\033[0m"
-        symbiotic-cli scan-diff --ci-formatting \
-          "${{ steps.infra-scan-base-branch.outputs.scan_output }}" \
-          "${{ steps.infra-scan-pr-branch.outputs.scan_output }}"
+        symbiotic-cli scan-diff --ci-formatting "$BASE_OUTPUT" "$PR_OUTPUT"
     
     - name: Check Results
       shell: bash
