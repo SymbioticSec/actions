@@ -69,10 +69,13 @@ runs:
         
         # Syntax to handle multi-line output in GitHub Actions outputs
         # Use random delimiter to avoid conflicts
-        delimiter="$(openssl rand -hex 8)"
-        echo "scan_output<<$delimiter" >> "$GITHUB_OUTPUT"
-        echo "$scan_output" >> "$GITHUB_OUTPUT"
-        echo "$delimiter" >> "$GITHUB_OUTPUT"
+        delimiter="EOF_$(openssl rand -hex 8)"
+        {
+          echo "scan_output<<${delimiter}"
+          printf '%s' "${scan_output}"
+          echo ""
+          echo "${delimiter}"
+        } >> "$GITHUB_OUTPUT"
 
     - name: Run Infra Scan
       id: infra-scan-base-branch
@@ -98,10 +101,13 @@ runs:
 
         # Syntax to handle multi-line output in GitHub Actions outputs
         # Use random delimiter to avoid conflicts
-        delimiter="$(openssl rand -hex 8)"
-        echo "scan_output<<$delimiter" >> "$GITHUB_OUTPUT"
-        echo "$scan_output" >> "$GITHUB_OUTPUT"
-        echo "$delimiter" >> "$GITHUB_OUTPUT"
+        delimiter="EOF_$(openssl rand -hex 8)"
+        {
+          echo "scan_output<<${delimiter}"
+          printf '%s' "${scan_output}"
+          echo ""
+          echo "${delimiter}"
+        } >> "$GITHUB_OUTPUT"
 
     - name: Checkout PR branch
       uses: actions/checkout@v4
@@ -132,10 +138,13 @@ runs:
 
         # Syntax to handle multi-line output in GitHub Actions outputs
         # Use random delimiter to avoid conflicts
-        delimiter="$(openssl rand -hex 8)"
-        echo "scan_output<<$delimiter" >> "$GITHUB_OUTPUT"
-        echo "$scan_output" >> "$GITHUB_OUTPUT"
-        echo "$delimiter" >> "$GITHUB_OUTPUT"
+        delimiter="EOF_$(openssl rand -hex 8)"
+        {
+          echo "scan_output<<${delimiter}"
+          printf '%s' "${scan_output}"
+          echo ""
+          echo "${delimiter}"
+        } >> "$GITHUB_OUTPUT"
 
     - name: Run Infra Scan
       id: infra-scan-pr-branch
@@ -161,28 +170,31 @@ runs:
 
         # Syntax to handle multi-line output in GitHub Actions outputs
         # Use random delimiter to avoid conflicts
-        delimiter="$(openssl rand -hex 8)"
-        echo "scan_output<<$delimiter" >> "$GITHUB_OUTPUT"
-        echo "$scan_output" >> "$GITHUB_OUTPUT"
-        echo "$delimiter" >> "$GITHUB_OUTPUT"
+        delimiter="EOF_$(openssl rand -hex 8)"
+        {
+          echo "scan_output<<${delimiter}"
+          printf '%s' "${scan_output}"
+          echo ""
+          echo "${delimiter}"
+        } >> "$GITHUB_OUTPUT"
 
     - name: Log Infra Scans Outputs
       if: inputs.scan-type == 'infra' || inputs.scan-type == 'all'
       shell: bash
       run: |
         echo -e "\033[1;34m📄 Infra Scan - Base Branch Output:\033[0m"
-        echo "${{ steps.infra-scan-base-branch.outputs.scan_output }}"
+        printf '%s\n' '${{ steps.infra-scan-base-branch.outputs.scan_output }}'
         echo -e "\033[1;34m📄 Infra Scan - PR Branch Output:\033[0m"
-        echo "${{ steps.infra-scan-pr-branch.outputs.scan_output }}"
+        printf '%s\n' '${{ steps.infra-scan-pr-branch.outputs.scan_output }}'
 
     - name: Log Code Scans Outputs
       if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
       shell: bash
       run: |
         echo -e "\033[1;34m📄 Code Scan - Base Branch Output:\033[0m"
-        echo "${{ steps.code-scan-base-branch.outputs.scan_output }}"
+        printf '%s\n' '${{ steps.code-scan-base-branch.outputs.scan_output }}'
         echo -e "\033[1;34m📄 Code Scan - PR Branch Output:\033[0m"
-        echo "${{ steps.code-scan-pr-branch.outputs.scan_output }}"
+        printf '%s\n' '${{ steps.code-scan-pr-branch.outputs.scan_output }}'
 
     - name: Run code scan diff
       id: code-scan-diff
