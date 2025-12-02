@@ -178,30 +178,6 @@ runs:
           echo "${delimiter}"
         } >> "$GITHUB_OUTPUT"
 
-    - name: Log Infra Scans Outputs
-      if: inputs.scan-type == 'infra' || inputs.scan-type == 'all'
-      shell: bash
-      env:
-        BASE_OUTPUT: ${{ steps.infra-scan-base-branch.outputs.scan_output }}
-        PR_OUTPUT: ${{ steps.infra-scan-pr-branch.outputs.scan_output }}
-      run: |
-        echo -e "\033[1;34m📄 Infra Scan - Base Branch Output:\033[0m"
-        printf '%s\n' "$BASE_OUTPUT"
-        echo -e "\033[1;34m📄 Infra Scan - PR Branch Output:\033[0m"
-        printf '%s\n' "$PR_OUTPUT"
-
-    - name: Log Code Scans Outputs
-      if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
-      shell: bash
-      env:
-        BASE_OUTPUT: ${{ steps.code-scan-base-branch.outputs.scan_output }}
-        PR_OUTPUT: ${{ steps.code-scan-pr-branch.outputs.scan_output }}
-      run: |
-        echo -e "\033[1;34m📄 Code Scan - Base Branch Output:\033[0m"
-        printf '%s\n' "$BASE_OUTPUT"
-        echo -e "\033[1;34m📄 Code Scan - PR Branch Output:\033[0m"
-        printf '%s\n' "$PR_OUTPUT"
-
     - name: Run code scan diff
       id: code-scan-diff
       if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
