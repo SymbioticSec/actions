@@ -46,7 +46,7 @@ runs:
       shell: bash
       run: |
         echo -e "\033[1;34m🔧 Installing Symbiotic CLI...\033[0m"
-        curl -sSL https://github.com/SymbioticSec/cli/releases/download/pro-1463-beta7/install.sh | bash
+        curl -sSL https://github.com/SymbioticSec/cli/releases/download/pro-1463-beta8/install.sh | bash
         echo 'export PATH="$HOME/.local/bin:$PATH"' >> $GITHUB_ENV
     
     - name: Run Standard Scan
