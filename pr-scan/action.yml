@@ -142,10 +142,6 @@ runs:
           symbiotic-cli ci infra ./ --skip-upload-results --skip-output-formatting >> /tmp/symbiotic_scans/infra_pr_branch.json
         fi
 
-    - name: Log files
-      run: ls -la
-      shell: bash
-
     - name: Run code scan diff
       id: code-scan-diff
       if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
