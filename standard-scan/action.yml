@@ -1,5 +1,5 @@
-name: Symbiotic Scan
-description: Scan the repository for vulnerabilities and misconfigurations
+name: Symbiotic Standard Scan
+description: Scan the repository for vulnerabilities
 inputs:
   api-token:
     description: Symbiotic Organization Access Token
@@ -20,13 +20,18 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Install Symbiotic CLI
+    - name: Start Standard Scan
+      run: echo "Starting Standard Scan..."
       shell: bash
-      run: |
-        echo -e "\033[1;34m🔧 Installing Symbiotic CLI...\033[0m"
-        curl -sSL https://github.com/SymbioticSec/cli/releases/latest/download/install.sh | bash
-        echo 'export PATH="$HOME/.local/bin:$PATH"' >> $GITHUB_ENV
 
+    # Checkout repository with full history to collect first commit SHA
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ github.ref }}
+
+    # Collect remote URL and first commit SHA
     - name: Collect git info
       id: git-info
       if: inputs.upload-results == 'true'
@@ -36,14 +41,9 @@ runs:
 
         remote_url="$(git config --get remote.origin.url)"
         first_commit_sha="$(git rev-list --max-parents=0 HEAD | head -n 1)"
-        latest_commit_sha="$(git rev-parse HEAD)"
-        current_branch="$(git branch --show-current)"
 
         echo "remote_url=$remote_url" >> "$GITHUB_OUTPUT"
         echo "first_commit_sha=$first_commit_sha" >> "$GITHUB_OUTPUT"
-        echo "latest_commit_sha=$latest_commit_sha" >> "$GITHUB_OUTPUT"
-        echo "default_branch=$default_branch" >> "$GITHUB_OUTPUT"
-        echo "current_branch=$current_branch" >> "$GITHUB_OUTPUT"
 
     - name: Run Code Scan
       id: code-scan
@@ -58,9 +58,9 @@ runs:
           symbiotic-cli ci code ./ \
             --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
             --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
-            --git-latest-commit-sha "${{ steps.git-info.outputs.latest_commit_sha }}" \
+            --git-latest-commit-sha "${{ github.sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ steps.git-info.outputs.current_branch }}"
+            --git-current-branch "${{ github.ref_name }}"
         else
           symbiotic-cli ci code ./ --skip-upload-results
         fi
@@ -78,9 +78,9 @@ runs:
           symbiotic-cli ci infra ./ \
             --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
             --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
-            --git-latest-commit-sha "${{ steps.git-info.outputs.latest_commit_sha }}" \
+            --git-latest-commit-sha "${{ github.sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
-            --git-current-branch "${{ steps.git-info.outputs.current_branch }}"
+            --git-current-branch "${{ github.ref_name }}"
         else
           symbiotic-cli ci infra ./ --skip-upload-results
         fi

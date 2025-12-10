@@ -1,0 +1,165 @@
+name: Symbiotic PR Scan
+description: Scan the pull request for introduced vulnerabilities
+inputs:
+  api-token:
+    description: Symbiotic Organization Access Token
+    required: true
+  scan-type:
+    description: Type of scan to run
+    required: false
+    default: "all"
+    options:
+      - infra
+      - code
+      - all
+  upload-results:
+    description: Whether to upload the scan results to Symbiotic
+    required: false
+    default: "true"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Start PR Scan
+      run: echo "Starting PR Scan..."
+      shell: bash
+
+    # Checkout base branch with full history to collect first commit SHA
+    - name: Checkout base branch
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ github.base_ref }}
+
+    # Collect remote URL and first commit SHA
+    - name: Collect git info
+      id: git-info
+      if: inputs.upload-results == 'true'
+      shell: bash
+      run: |
+        echo -e "\033[1;34m⭐ Collecting git information...\033"
+
+        remote_url="$(git config --get remote.origin.url)"
+        first_commit_sha="$(git rev-list --max-parents=0 HEAD | head -n 1)"
+
+        echo "remote_url=$remote_url" >> "$GITHUB_OUTPUT"
+        echo "first_commit_sha=$first_commit_sha" >> "$GITHUB_OUTPUT"
+
+    - name: Create temporary directory for scan outputs
+      run: mkdir -p /tmp/symbiotic_scans
+      shell: bash
+      
+    - name: Run Code Scan
+      id: code-scan-base-branch
+      if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
+      continue-on-error: true
+      env:
+        SYMBIOTIC_API_TOKEN: ${{ inputs.api-token }}
+      shell: bash
+      run: |
+        echo -e "\033[1;36m💻 Running code scan...\033[0m"
+        if [[ "${{ inputs.upload-results }}" == "true" ]]; then
+          symbiotic-cli ci code ./ \
+            --skip-output-formatting \
+            --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
+            --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
+            --git-latest-commit-sha "${{ github.event.pull_request.base.sha }}" \
+            --git-default-branch "${{ github.event.repository.default_branch }}" \
+            --git-current-branch "${{ github.base_ref }}" >> /tmp/symbiotic_scans/code_base_branch.json
+        else
+          symbiotic-cli ci code ./ --skip-upload-results --skip-output-formatting >> /tmp/symbiotic_scans/code_base_branch.json
+        fi
+
+    - name: Run Infra Scan
+      id: infra-scan-base-branch
+      if: inputs.scan-type == 'infra' || inputs.scan-type == 'all'
+      continue-on-error: true
+      env:
+        SYMBIOTIC_API_TOKEN: ${{ inputs.api-token }}
+      shell: bash
+      run: |
+        echo -e "\033[1;35m🏗️  Running infrastructure scan...\033[0m"
+        if [[ "${{ inputs.upload-results }}" == "true" ]]; then
+          symbiotic-cli ci infra ./ \
+            --skip-output-formatting \
+            --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
+            --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
+            --git-latest-commit-sha "${{ github.event.pull_request.base.sha }}" \
+            --git-default-branch "${{ github.event.repository.default_branch }}" \
+            --git-current-branch "${{ github.base_ref }}" >> /tmp/symbiotic_scans/infra_base_branch.json
+        else
+          symbiotic-cli ci infra ./ --skip-upload-results --skip-output-formatting >> /tmp/symbiotic_scans/infra_base_branch.json
+        fi
+
+    - name: Checkout PR branch
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.head_ref }}
+
+    - name: Run Code Scan
+      id: code-scan-pr-branch
+      if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
+      continue-on-error: true
+      env:
+        SYMBIOTIC_API_TOKEN: ${{ inputs.api-token }}
+      shell: bash
+      run: |
+        echo -e "\033[1;36m💻 Running code scan...\033[0m"
+        if [[ "${{ inputs.upload-results }}" == "true" ]]; then
+          symbiotic-cli ci code ./ \
+            --skip-output-formatting \
+            --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
+            --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
+            --git-latest-commit-sha "${{ github.event.pull_request.head.sha }}" \
+            --git-default-branch "${{ github.event.repository.default_branch }}" \
+            --git-current-branch "${{ github.head_ref }}" >> /tmp/symbiotic_scans/code_pr_branch.json
+        else
+          symbiotic-cli ci code ./ --skip-upload-results --skip-output-formatting >> /tmp/symbiotic_scans/code_pr_branch.json
+        fi
+
+    - name: Run Infra Scan
+      id: infra-scan-pr-branch
+      if: inputs.scan-type == 'infra' || inputs.scan-type == 'all'
+      continue-on-error: true
+      env:
+        SYMBIOTIC_API_TOKEN: ${{ inputs.api-token }}
+      shell: bash
+      run: |
+        echo -e "\033[1;35m🏗️  Running infrastructure scan...\033[0m"
+        if [[ "${{ inputs.upload-results }}" == "true" ]]; then
+          symbiotic-cli ci infra ./ \
+            --skip-output-formatting \
+            --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
+            --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
+            --git-latest-commit-sha "${{ github.event.pull_request.head.sha }}" \
+            --git-default-branch "${{ github.event.repository.default_branch }}" \
+            --git-current-branch "${{ github.head_ref }}" >> /tmp/symbiotic_scans/infra_pr_branch.json
+        else
+          symbiotic-cli ci infra ./ --skip-upload-results --skip-output-formatting >> /tmp/symbiotic_scans/infra_pr_branch.json
+        fi
+
+    - name: Run code scan diff
+      id: code-scan-diff
+      if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
+      continue-on-error: true
+      shell: bash
+      run: |
+        echo -e "\033[1;33m🔍 Comparing code scan results between base and PR branches...\033[0m"
+        symbiotic-cli scan-diff --ci-formatting /tmp/symbiotic_scans/code_base_branch.json /tmp/symbiotic_scans/code_pr_branch.json
+
+    - name: Run infra scan diff
+      id: infra-scan-diff
+      if: inputs.scan-type == 'infra' || inputs.scan-type == 'all'
+      continue-on-error: true
+      shell: bash
+      run: |
+        echo -e "\033[1;33m🔍 Comparing infrastructure scan results between base and PR branches...\033[0m"
+        symbiotic-cli scan-diff --ci-formatting /tmp/symbiotic_scans/infra_base_branch.json /tmp/symbiotic_scans/infra_pr_branch.json
+    
+    - name: Check Results
+      shell: bash
+      run: |
+        # Check if any scan failed and exit with code 1
+        if [[ "${{ steps.code-scan-diff.outcome }}" == "failure" ]] || [[ "${{ steps.infra-scan-diff.outcome }}" == "failure" ]]; then
+          exit 1
+        fi
