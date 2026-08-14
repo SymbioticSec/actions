@@ -60,6 +60,7 @@ runs:
         echo -e "\033[1;36m💻 Running code scan...\033[0m"
         if [[ "${{ inputs.upload-results }}" == "true" ]]; then
           symbiotic-cli ci code ./ \
+            --origin ci \
             --skip-output-formatting \
             --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
             --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
@@ -81,6 +82,7 @@ runs:
         echo -e "\033[1;35m🏗️  Running infrastructure scan...\033[0m"
         if [[ "${{ inputs.upload-results }}" == "true" ]]; then
           symbiotic-cli ci infra ./ \
+            --origin ci \
             --skip-output-formatting \
             --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
             --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
@@ -88,7 +90,7 @@ runs:
             --git-default-branch "${{ github.event.repository.default_branch }}" \
             --git-current-branch "${{ github.base_ref }}" >> /tmp/symbiotic_scans/infra_base_branch.json
         else
-          symbiotic-cli ci infra ./ --skip-upload-results --skip-output-formatting >> /tmp/symbiotic_scans/infra_base_branch.json
+          symbiotic-cli ci infra ./ --origin ci --skip-upload-results --skip-output-formatting >> /tmp/symbiotic_scans/infra_base_branch.json
         fi
 
     - name: Checkout PR branch
@@ -107,6 +109,7 @@ runs:
         echo -e "\033[1;36m💻 Running code scan...\033[0m"
         if [[ "${{ inputs.upload-results }}" == "true" ]]; then
           symbiotic-cli ci code ./ \
+            --origin ci \
             --skip-output-formatting \
             --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
             --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
@@ -114,7 +117,7 @@ runs:
             --git-default-branch "${{ github.event.repository.default_branch }}" \
             --git-current-branch "${{ github.head_ref }}" >> /tmp/symbiotic_scans/code_pr_branch.json
         else
-          symbiotic-cli ci code ./ --skip-upload-results --skip-output-formatting >> /tmp/symbiotic_scans/code_pr_branch.json
+          symbiotic-cli ci code ./ --skip-upload-results --origin ci --skip-output-formatting >> /tmp/symbiotic_scans/code_pr_branch.json
         fi
 
     - name: Run Infra Scan
@@ -129,13 +132,14 @@ runs:
         if [[ "${{ inputs.upload-results }}" == "true" ]]; then
           symbiotic-cli ci infra ./ \
             --skip-output-formatting \
+            --origin ci \
             --git-remote-url "${{ steps.git-info.outputs.remote_url }}" \
             --git-first-commit-sha "${{ steps.git-info.outputs.first_commit_sha }}" \
             --git-latest-commit-sha "${{ github.event.pull_request.head.sha }}" \
             --git-default-branch "${{ github.event.repository.default_branch }}" \
             --git-current-branch "${{ github.head_ref }}" >> /tmp/symbiotic_scans/infra_pr_branch.json
         else
-          symbiotic-cli ci infra ./ --skip-upload-results --skip-output-formatting >> /tmp/symbiotic_scans/infra_pr_branch.json
+          symbiotic-cli ci infra ./ --origin ci --skip-upload-results --skip-output-formatting >> /tmp/symbiotic_scans/infra_pr_branch.json
         fi
 
     - name: Run code scan diff
