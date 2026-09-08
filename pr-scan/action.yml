@@ -138,6 +138,18 @@ runs:
           symbiotic-cli ci infra ./ --skip-upload-results --skip-output-formatting >> /tmp/symbiotic_scans/infra_pr_branch.json
         fi
 
+    - name: Debug scan finding counts
+      shell: bash
+      run: |
+        echo "=== BASE BRANCH CODE SCAN ==="
+        cat /tmp/symbiotic_scans/code_base_branch.json | jq '.findings | length'
+        echo "=== PR BRANCH CODE SCAN ==="
+        cat /tmp/symbiotic_scans/code_pr_branch.json | jq '.findings | length'
+        echo "=== BASE BRANCH INFRA SCAN ==="
+        cat /tmp/symbiotic_scans/infra_base_branch.json | jq '.findings | length'
+        echo "=== PR BRANCH INFRA SCAN ==="
+        cat /tmp/symbiotic_scans/infra_pr_branch.json | jq '.findings | length'
+
     - name: Run code scan diff
       id: code-scan-diff
       if: inputs.scan-type == 'code' || inputs.scan-type == 'all'
